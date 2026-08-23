@@ -592,7 +592,10 @@ async function submitLead(e){
     submitted_at: new Date().toISOString()
   };
   try{
-    await fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    /* no Content-Type header: hooks.zapier.com fails the CORS preflight that a JSON header
+       triggers, but accepts and parses a JSON body sent as a "simple" request */
+    const resp = await fetch(WEBHOOK_URL,{method:"POST",body:JSON.stringify(payload)});
+    if(!resp.ok) throw new Error("webhook status "+resp.status);
     finishUnlock();
   }catch(err){
     document.getElementById("formErr").style.display="block";
