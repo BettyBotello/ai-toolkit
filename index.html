@@ -1,12 +1,12 @@
 <!--
-  Agent AI Toolkit — ai.bettybotello.com
+  Agent AI Toolkit — ai.keysbybetty.com
   Gated prompt library for agent attraction + mentees.
   Feeds BoldTrail via the SAME Zapier Catch Hook as acreagebybetty.com
   (tags/source in the payload route it differently — no new Zap needed).
 
-  Mentee bypass link: https://ai.bettybotello.com/?mentee  (skips the form, no lead created)
+  Mentee bypass link: https://ai.keysbybetty.com/?mentee  (skips the form, no lead created)
 
-  To publish: upload as index.html to the GitHub Pages repo, add CNAME file "ai.bettybotello.com",
+  To publish: upload as index.html to the GitHub Pages repo, add CNAME file "ai.keysbybetty.com",
   point GoDaddy CNAME record "ai" -> bettybotello.github.io
 -->
 <title>Agent AI Toolkit</title>
@@ -221,7 +221,7 @@
 <script>
 /* ====== CONFIG ====== */
 const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/20461366/44w6m7c/";
-const SOURCE = "ai.bettybotello.com";
+const SOURCE = "ai.keysbybetty.com";
 const BASE_TAGS = ["agent-attraction","ai-toolkit","source-aibettybotello"];
 /* ==================== */
 
@@ -582,7 +582,7 @@ async function submitLead(e){
     source: SOURCE, lead_type: "Agent", capture_method: "Agent AI Toolkit",
     tag: tagList.join(" | "),
     message: [
-      "Source: ai.bettybotello.com prompt library",
+      "Source: ai.keysbybetty.com prompt library",
       "Brokerage: " + (f.brokerage||""),
       "Market: " + (f.market||""),
       "Biggest time drain: " + (f.time_drain||""),
