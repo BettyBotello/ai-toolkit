@@ -1,0 +1,611 @@
+<!--
+  Agent AI Toolkit — ai.bettybotello.com
+  Gated prompt library for agent attraction + mentees.
+  Feeds BoldTrail via the SAME Zapier Catch Hook as acreagebybetty.com
+  (tags/source in the payload route it differently — no new Zap needed).
+
+  Mentee bypass link: https://ai.bettybotello.com/?mentee  (skips the form, no lead created)
+
+  To publish: upload as index.html to the GitHub Pages repo, add CNAME file "ai.bettybotello.com",
+  point GoDaddy CNAME record "ai" -> bettybotello.github.io
+-->
+<title>Agent AI Toolkit</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --cream:#f7f5ee; --sand:#e9e6d6; --sage:#9aab8c; --green:#7c9271; --green-dark:#5e7355;
+    --ink:#2f322b; --muted:#6f7266; --line:#d8d5c2; --white:#ffffff;
+    --shadow:0 6px 24px rgba(94,115,85,.14);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--cream);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+  a{color:var(--green-dark)}
+
+  /* ---------- hero ---------- */
+  .hero{background:var(--ink);color:var(--cream);padding:64px 20px 56px;text-align:center}
+  .hero .kicker{text-transform:uppercase;letter-spacing:.18em;font-size:.72rem;color:var(--sage);margin:0 0 14px}
+  .hero h1{font-family:Georgia,serif;font-weight:400;font-size:clamp(2.1rem,6vw,3.4rem);margin:0 0 10px;text-wrap:balance}
+  .hero h1 em{font-style:italic;color:var(--sage)}
+  .hero p.sub{max-width:34em;margin:0 auto 30px;color:#cfd2c6;font-size:1.05rem;text-wrap:balance}
+  .stats{display:flex;justify-content:center;gap:44px;flex-wrap:wrap}
+  .stat b{display:block;font-family:Georgia,serif;font-weight:400;font-size:2rem;color:var(--cream)}
+  .stat span{text-transform:uppercase;letter-spacing:.14em;font-size:.66rem;color:var(--sage)}
+  .hero .cta{display:inline-block;margin-top:34px;background:var(--green);color:var(--white);border:none;
+    padding:14px 30px;border-radius:999px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none}
+  .hero .cta:hover{background:var(--green-dark)}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:860px;margin:0 auto;padding:0 18px}
+  section{padding:46px 0}
+  h2{font-family:Georgia,serif;font-weight:400;font-size:1.7rem;margin:0 0 6px;text-wrap:balance}
+  .lede{color:var(--muted);margin:0 0 26px;max-width:40em}
+
+  /* ---------- how it works ---------- */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .step{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px}
+  .step b{display:block;margin-bottom:4px}
+  .step p{margin:0;color:var(--muted);font-size:.92rem}
+
+  /* ---------- library ---------- */
+  .toolbar{position:sticky;top:0;z-index:5;background:var(--cream);padding:12px 0;border-bottom:1px solid var(--line)}
+  .search{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:1rem;
+    font-family:inherit;background:var(--white);margin-bottom:10px}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .tab{flex:0 0 auto;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:999px;
+    padding:7px 14px;font-size:.85rem;cursor:pointer;white-space:nowrap;font-family:inherit}
+  .tab.active{background:var(--green-dark);border-color:var(--green-dark);color:var(--white)}
+
+  .cat{margin:34px 0 8px}
+  .cat h3{font-family:Georgia,serif;font-weight:400;font-size:1.35rem;margin:0 0 2px}
+  .cat .catsub{color:var(--muted);font-size:.92rem;margin:0 0 14px}
+
+  .card{background:var(--white);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  .card summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:15px 18px;cursor:pointer}
+  .card summary::-webkit-details-marker{display:none}
+  .card summary b{font-weight:600}
+  .card summary small{display:block;color:var(--muted);font-weight:400;margin-top:2px}
+  .chev{flex:0 0 auto;color:var(--sage);transition:transform .15s}
+  details[open] .chev{transform:rotate(90deg)}
+  .card .body{padding:0 18px 16px}
+  pre.prompt{white-space:pre-wrap;background:var(--sand);border:1px solid var(--line);border-radius:10px;
+    padding:14px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.84rem;line-height:1.5;margin:0 0 10px}
+  .copy{background:var(--green);color:var(--white);border:none;border-radius:8px;padding:9px 18px;
+    font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit}
+  .copy:hover{background:var(--green-dark)}
+  .copy.done{background:var(--green-dark)}
+
+  /* ---------- lock ---------- */
+  #locked{position:relative;text-align:center;padding:60px 18px;border:1px dashed var(--sage);
+    border-radius:14px;background:var(--sand);margin-top:26px}
+  #locked h3{font-family:Georgia,serif;font-weight:400;font-size:1.5rem;margin:0 0 8px}
+  #locked p{color:var(--muted);max-width:32em;margin:0 auto 22px}
+  .unlock{background:var(--green);color:var(--white);border:none;padding:14px 30px;border-radius:999px;
+    font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
+  .unlock:hover{background:var(--green-dark)}
+  #library{display:none}
+
+  /* ---------- attraction band ---------- */
+  .band{background:var(--green-dark);color:var(--cream);border-radius:16px;padding:34px 26px;margin:52px 0}
+  .band h2{color:var(--cream)}
+  .band p{color:#e4e7da;max-width:38em}
+  .band a.btn{display:inline-block;background:var(--cream);color:var(--green-dark);text-decoration:none;
+    padding:12px 26px;border-radius:999px;font-weight:600;margin-top:8px}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:30px 18px 46px;text-align:center;color:var(--muted);font-size:.85rem}
+  footer b{color:var(--ink)}
+
+  /* ---------- modal ---------- */
+  #overlay{position:fixed;inset:0;background:rgba(47,50,43,.55);display:none;align-items:flex-end;
+    justify-content:center;z-index:50;padding:0}
+  #overlay.open{display:flex}
+  .modal{background:var(--white);width:100%;max-width:460px;max-height:92vh;overflow-y:auto;
+    border-radius:18px 18px 0 0;padding:24px 22px 30px;box-shadow:var(--shadow)}
+  @media(min-width:520px){#overlay{align-items:center;padding:20px}.modal{border-radius:18px}}
+  .modal h3{font-family:Georgia,serif;font-weight:400;font-size:1.4rem;margin:0 0 4px}
+  .modal .msub{color:var(--muted);font-size:.92rem;margin:0 0 18px}
+  label{display:block;font-size:.82rem;font-weight:600;margin:12px 0 4px}
+  input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;font-size:1rem;
+    font-family:inherit;background:var(--white)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .consent{display:flex;gap:9px;align-items:flex-start;font-size:.78rem;color:var(--muted);margin-top:14px}
+  .consent input{width:auto;margin-top:3px}
+  #submitBtn{width:100%;margin-top:16px;background:var(--green);color:var(--white);border:none;padding:14px;
+    border-radius:999px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit}
+  #submitBtn:hover{background:var(--green-dark)}
+  #formErr{display:none;color:#a04432;font-size:.85rem;margin-top:10px}
+  .close{float:right;background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer;padding:0 0 0 10px}
+  .hp{position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden}
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{
+    outline:2px solid var(--green-dark);outline-offset:2px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="hero">
+  <p class="kicker">Free for agents · From a working desk in Peotone, Illinois</p>
+  <h1>The Agent <em>AI Toolkit</em></h1>
+  <p class="sub">The exact prompts I use to run my listings, my Spanish-market outreach, my follow-up, and my daily operations with Claude. Copy them, fill in the brackets, make them yours.</p>
+  <div class="stats">
+    <div class="stat"><b>29</b><span>Prompts</span></div>
+    <div class="stat"><b>8</b><span>Categories</span></div>
+    <div class="stat"><b>1</b><span>Click to copy</span></div>
+  </div>
+  <button class="cta" onclick="startUnlock()">Unlock the library free</button>
+</div>
+
+<div class="wrap">
+
+<section>
+  <h2>How to use this</h2>
+  <p class="lede">These work in Claude (claude.ai, the free or Pro plan). No connectors, no setup. Open a prompt, copy it, paste it into a new chat, and replace anything in [BRACKETS] with your real details.</p>
+  <div class="steps">
+    <div class="step"><b>1. Start with Setup</b><p>The first category teaches Claude your voice and your market. Do those once and every other prompt gets better.</p></div>
+    <div class="step"><b>2. Copy and fill</b><p>Tap any prompt, hit Copy, paste into Claude, swap the [BRACKETS] for your details.</p></div>
+    <div class="step"><b>3. Check before you post</b><p>Anything public-facing still gets your eyes: fair housing, accuracy, and your MLS rules are on you.</p></div>
+  </div>
+</section>
+
+<div id="locked">
+  <h3>The full library is free</h3>
+  <p>Tell me who you are and it unlocks right here. I also send new prompts as I build them, and I will never spam you.</p>
+  <button class="unlock" onclick="startUnlock()">Unlock 29 prompts</button>
+</div>
+
+<div id="library">
+  <div class="toolbar">
+    <input class="search" id="q" type="search" placeholder='Search all prompts. Try "listing", "follow-up", "Spanish", "morning"...' oninput="filter()">
+    <div class="tabs" id="tabs"></div>
+  </div>
+  <div id="cats"></div>
+
+  <div class="band">
+    <h2>The prompts are step one</h2>
+    <p>Copy-paste is where I started too. Today my setup runs on its own: my morning brief builds itself, my calls file themselves, my listings launch with one command, and my CRM follow-up drafts itself in my voice, in English and Spanish. If you want to see what that looks like live, or talk about building it inside your own business, I show agents my full system on a 20-minute call. No pitch, just screens.</p>
+    <a class="btn" href="sms:+17087296828?&body=SYSTEM%20-%20I%20grabbed%20your%20AI%20toolkit%20and%20want%20to%20see%20the%20full%20setup">Text me SYSTEM at 708.729.6828</a>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<footer>
+  <b>Betty Botello</b> · REALTOR®, eXp Realty · Peotone, IL and the south Chicago suburbs<br>
+  Call or text 708.729.6828 · Betty@BettyBotello.com · bettybotello.com<br><br>
+  These prompts are educational tools for licensed agents. You are responsible for your own compliance:
+  fair housing, MLS rules, your state license law, and your brokerage policies. Not legal advice.<br>
+  For personal use. Please don't resell or redistribute — send agents here instead.
+</footer>
+
+<!-- ============ GATE FORM ============ -->
+<div id="overlay">
+  <form class="modal" id="leadForm" onsubmit="submitLead(event)">
+    <button type="button" class="close" onclick="closeForm()" aria-label="Close">×</button>
+    <h3>Unlock the toolkit</h3>
+    <p class="msub">Free, instant, and I only use this to send you new prompts and say hello.</p>
+    <div class="hp"><label>Company website<input name="company_website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="row2">
+      <div><label>First name</label><input name="first_name" required autocomplete="given-name"></div>
+      <div><label>Last name</label><input name="last_name" required autocomplete="family-name"></div>
+    </div>
+    <label>Email</label><input name="email" type="email" required autocomplete="email">
+    <label>Cell phone</label><input name="phone" type="tel" required autocomplete="tel">
+    <label>Brokerage</label><input name="brokerage" placeholder="Where do you hang your license?">
+    <label>Your market</label><input name="market" placeholder="City / area you work">
+    <label>What eats most of your time?</label>
+    <select name="time_drain">
+      <option>Listing marketing and social media</option>
+      <option>Lead follow-up</option>
+      <option>Transaction paperwork and deadlines</option>
+      <option>Content creation</option>
+      <option>Staying organized day to day</option>
+      <option>All of it, honestly</option>
+    </select>
+    <label>Want a look at my full automated setup?</label>
+    <select name="system_interest">
+      <option>Yes, show me how you run it</option>
+      <option>Maybe later</option>
+      <option>Just here for the prompts</option>
+    </select>
+    <div class="consent">
+      <input type="checkbox" required id="consent">
+      <label for="consent" style="font-weight:400;margin:0">Betty Botello (eXp Realty) may contact me by phone, text, or email about AI tools and working together. Message and data rates may apply. Opt out anytime.</label>
+    </div>
+    <button id="submitBtn" type="submit">Unlock the library</button>
+    <p id="formErr">Something didn't send. Try again, or text me SYSTEM at 708.729.6828 and I'll unlock you manually.</p>
+  </form>
+</div>
+
+<script>
+/* ====== CONFIG ====== */
+const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/20461366/44w6m7c/";
+const SOURCE = "ai.bettybotello.com";
+const BASE_TAGS = ["agent-attraction","ai-toolkit","source-aibettybotello"];
+/* ==================== */
+
+/* ---------- prompt data ---------- */
+const LIB = [
+{cat:"Set up your AI", sub:"Do these first. Ten minutes here makes every other prompt sound like you instead of a robot.", prompts:[
+ {t:"Teach Claude your voice", w:"Run once, save the output, paste it at the top of future chats.",
+p:`I'm a real estate agent and I want you to learn my writing voice so everything you draft sounds like me.
+
+Below are [3-5] things I actually wrote (texts, captions, emails). Study them and give me:
+1. A short "voice guide": my tone, sentence length, words I use, words I never use
+2. Three rules a writer should follow to sound like me
+3. A one-paragraph sample caption in my voice so I can confirm you got it
+
+Keep the voice guide under 150 words so I can paste it into future chats.
+
+My writing samples:
+[PASTE 3-5 REAL EXAMPLES OF YOUR TEXTS, CAPTIONS, OR EMAILS]`},
+ {t:"Build your market brief", w:"A reusable card of your market facts. Paste it into any prompt that needs local context.",
+p:`Help me build a "market brief" I can reuse in future chats so you always know my business.
+
+Interview me one question at a time about: the towns I serve, my price bands, my main buyer types, my niche, my brokerage, what makes me different, and the languages I work in. Then compile my answers into a tight reference card under 200 words titled MY MARKET BRIEF.
+
+Start with question 1.`},
+ {t:"Write your niche one-liner and bio", w:"When your Instagram bio still says 'helping buyers and sellers'.",
+p:`Using my market brief below, write me:
+1. Five options for a one-line niche statement (under 12 words each) that says WHO I help and WHERE, in plain language a stranger gets instantly
+2. A 3-sentence Instagram bio version
+3. A 100-word "About" paragraph for my website
+
+No clichés like "passionate about real estate" or "making dreams come true."
+
+MY MARKET BRIEF:
+[PASTE YOUR MARKET BRIEF]`}
+]},
+{cat:"Listing marketing", sub:"From property facts to a full launch: MLS copy, captions in two languages, and ad copy.", prompts:[
+ {t:"MLS description from raw facts", w:"Turn your notes into MLS-ready copy that describes the property, not the buyer.",
+p:`Write an MLS public remarks description from the facts below.
+
+Rules:
+- Describe the PROPERTY, never the ideal buyer or neighborhood demographics (fair housing)
+- No "perfect for families," no school quality claims, no "safe neighborhood"
+- Lead with the strongest feature, keep it under [900] characters
+- Plain confident language, no ALL CAPS, minimal exclamation points
+- Only use facts I gave you. If something is missing, ask instead of inventing it.
+
+Property facts:
+[ADDRESS OR AREA, BEDS, BATHS, SQFT, LOT, YEAR, UPDATES, STANDOUT FEATURES, ANYTHING QUIRKY]`},
+ {t:"Full caption set for one listing (EN + ES)", w:"One listing, every platform, both languages, in one pass.",
+p:`I just listed a property. Using the facts and my voice guide below, write:
+1. An Instagram/Facebook caption in English (hook first line, 3 short paragraphs, CTA to DM or text me)
+2. The same caption in natural spoken Spanish, the way people actually talk, not textbook Spanish
+3. A short TikTok caption with a question hook
+4. 15 hashtags mixing local, property-type, and broad real estate tags
+
+Facts: [PRICE, TOWN, BEDS/BATHS, TOP 3 FEATURES, OPEN HOUSE DATE IF ANY]
+My voice guide: [PASTE VOICE GUIDE]`},
+ {t:"Facebook ad copy that survives the housing category", w:"Meta housing ads have rules. Write inside them from the start.",
+p:`Write 3 versions of Facebook ad copy for the listing below. This will run under Meta's Special Ad Category for housing, so:
+- No targeting language ("perfect for young couples" etc.)
+- Focus on the property and the offer, not the person reading
+- Each version: hook line, 2-3 sentences, clear CTA
+- Give me one curiosity angle, one detail/feature angle, one urgency angle (honest urgency only, like a real open house date)
+
+Listing: [PRICE, TOWN, KEY FEATURES, LINK OR CTA DESTINATION]`},
+ {t:"Just-sold post that wins the next listing", w:"The closing post is really a listing appointment ad.",
+p:`Write a just-sold / closing day post in my voice. The real audience is my NEXT seller, so it should quietly prove what I did, not just celebrate.
+
+Include: what the situation was [SOLD IN X DAYS / MULTIPLE OFFERS / TRICKY DEAL, WHATEVER IS TRUE], one line about what I actually did for the client, a thank-you that sounds human, and a soft CTA for anyone thinking about selling.
+
+Never invent numbers. Facts: [TOWN, WHAT HAPPENED, ANYTHING THE CLIENT SAID I CAN QUOTE WITH PERMISSION]
+My voice guide: [PASTE VOICE GUIDE]`}
+]},
+{cat:"Spanish-market outreach", sub:"I'm a heritage speaker serving Spanish-speaking buyers. These write Spanish that sounds like a person, not a textbook.", prompts:[
+ {t:"Translate like you actually talk", w:"The difference between 'adquirir una vivienda' and 'comprar casa'. Use this instead of Google Translate.",
+p:`Translate the message below into Spanish for [MEXICAN / PUERTO RICAN / GENERAL LATINO] clients in the US.
+
+Rules:
+- Spoken, everyday Spanish. The way someone talks at a kitchen table, not how a bank writes.
+- Say "comprar casa," not "adquirir una vivienda." Keep it warm and plain.
+- Keep common US real estate terms in English where Spanish speakers here actually use the English word (closing, lender, down payment are often fine to keep or mix)
+- Use "tú" [OR "usted" IF THIS IS A FORMAL/OLDER CLIENT]
+- Read it back to me in English afterward so I can confirm nothing shifted
+
+Message: [PASTE YOUR ENGLISH MESSAGE]`},
+ {t:"First-time buyer process explainer (Spanish)", w:"For the buyer whose family has never bought a home in the US.",
+p:`Write a simple Spanish explanation of the home buying process for a first-time buyer whose family has never bought in the US. Plain spoken Spanish.
+
+Cover, in order: get pre-approved BEFORE looking (and that a pre-qual letter is free and is NOT a loan application), what a down payment really is (that it's not always 20%), what earnest money is, inspection, and closing. One short paragraph each with the English term in parentheses the first time it appears.
+
+End with: an invitation to ask me anything, no pena, and my contact line: [YOUR NAME, PHONE]
+
+Tone: like a trusted friend who happens to be a professional. Never promise loan approval or specific numbers.`},
+ {t:"Bilingual open house invite", w:"One event, two languages, three formats.",
+p:`Write an open house invitation in both English and natural spoken Spanish, three formats each:
+1. A text message I can send to my contact list (short, personal, feels 1-to-1)
+2. A Facebook/Instagram caption
+3. A 15-second video script I can say to camera
+
+Details: [ADDRESS OR TOWN, DATE, TIME, PRICE, ONE STANDOUT FEATURE, PARKING/ENTRY NOTE IF ANY]
+
+The Spanish is not a translation of the English. Write each like a native post.`},
+ {t:"30-second Spanish video script", w:"Green-screen style: you talking over a listing photo or market chart.",
+p:`Write a 30-second Spanish video script (green-screen style, me talking over an image) about: [TOPIC, e.g. "what is a pre-approval," "this week's new listing," "why rents here went up"].
+
+Structure: question hook in the first 2 seconds, 3 short punchy sentences of substance, one-line CTA to comment a keyword [KEYWORD] or DM me.
+
+Spoken Spanish, short sentences, no subjunctive gymnastics. Write it phonetically natural so I can read it once and record.`}
+]},
+{cat:"Follow-up that converts", sub:"The money is in the follow-up nobody sends. Draft it in seconds, personalize in one line.", prompts:[
+ {t:"Wake up a cold lead", w:"For the lead from 6 months ago you feel guilty texting.",
+p:`Write a 3-text re-engagement sequence for a lead who went quiet [X MONTHS] ago. Context: [WHAT THEY WANTED, LAST THING THAT HAPPENED, e.g. "wanted 3bd under 250k, we toured twice in March, then silence"].
+
+Rules:
+- Text 1: zero guilt, zero "just checking in." Lead with something useful or new (a market change, a new listing type they wanted, a genuine question)
+- Text 2 (a week later): short, curiosity-based
+- Text 3 (a week after that): the honest close-the-loop text that makes it easy to say "we paused" without shame
+- Each under 300 characters, in my voice: [PASTE VOICE GUIDE OR 2 SAMPLE TEXTS]`},
+ {t:"Same-night open house follow-up", w:"Send while the visit is still warm. Different message per visitor type.",
+p:`I just held an open house at [ADDRESS/TOWN]. Write same-night follow-up texts for each visitor type below. Personal, short, one clear next step each. No "it was great meeting you" openers on every single one; vary them.
+
+1. The serious buyer who lingered: [NAME, WHAT THEY LIKED]
+2. The neighbor "just looking": [NAME] (this one is really a future SELLER lead, treat it that way)
+3. The buyer who has a house to sell first: [NAME]
+4. The one with an agent already: [NAME] (stay gracious, leave the door open, don't poach)`},
+ {t:"Answer the objection without arguing", w:"'We're waiting for rates to drop' and friends.",
+p:`A lead just told me: "[PASTE THE OBJECTION, e.g. We're going to wait until rates come down]"
+
+Draft 2 reply options:
+1. A short empathetic text that validates them, adds ONE piece of perspective (no lecturing, no doom), and keeps the relationship warm
+2. A slightly longer version with a concrete low-pressure next step (like a monthly market update or a payment scenario when they're ready)
+
+Never predict rates or promise appreciation. My voice: [PASTE VOICE GUIDE]`},
+ {t:"Referral partner check-in", w:"Lenders, attorneys, inspectors: the people who feed your pipeline eat last. Fix that.",
+p:`Write a short check-in message to [NAME], my [LENDER / ATTORNEY / INSPECTOR / PAST-CLIENT REFERRER]. Last contact: [WHEN, ABOUT WHAT].
+
+Goal: stay top of mind and be useful, not ask for anything. Include one genuine specific ([SOMETHING TRUE: a deal we shared, something they helped with, something new in my business they'd care about]) and end warm without a fake coffee invite unless I mean it: [DO I MEAN IT? YES/NO]`}
+]},
+{cat:"Pricing conversations", sub:"You pick the number. These help you explain it in plain English so the seller actually hears it.", prompts:[
+ {t:"Turn comps into a pricing story", w:"The CMA is data. The listing appointment needs a narrative.",
+p:`I'm preparing a pricing conversation with a seller. Below are my comps and my recommended price. Turn this into a plain-English pricing narrative I can SAY out loud at the kitchen table, not a report.
+
+Structure:
+1. What buyers in this market are doing right now (from the data, no jargon)
+2. Walk through the 3 most relevant comps like a story ("the house on X sold in Y days because...")
+3. Land on my recommended price and WHY it positions us to win
+4. Name the risk of overpricing honestly but without fear-mongering
+
+Keep it under 400 words, conversational, no bullet points in the final version.
+
+My recommended price: [PRICE]
+Comps: [PASTE COMPS: ADDRESS, SOLD PRICE, DOM, CONDITION NOTES]
+Anything unique about the subject property: [NOTES]`},
+ {t:"The price reduction conversation", w:"The call every agent dreads. Walk in with words that respect the seller.",
+p:`My listing at [TOWN/ADDRESS] has been on the market [X DAYS] with [X SHOWINGS, X OFFERS]. The market feedback: [WHAT AGENTS/BUYERS SAID]. I want to recommend moving from [CURRENT PRICE] to [NEW PRICE].
+
+Write me:
+1. A talk track for the phone call: lead with the data, own my part if the initial price was ambitious, make the new price a strategy (not a defeat)
+2. The 3 pushbacks this seller will most likely say, and a calm response to each
+3. A short follow-up email confirming what we agreed, for after the call
+
+Tone: honest partner, not salesperson covering their tracks.`},
+ {t:"Explain the seller's net in plain words", w:"After you run your net sheet, translate it to human.",
+p:`I ran a seller net sheet and I want to walk my seller through it in plain language. Here are the numbers: [SALE PRICE, PAYOFF, COMMISSION TOTAL, TAX PRORATION, TITLE/ATTORNEY FEES, OTHER, ESTIMATED NET].
+
+Write a short script that:
+1. Starts with the number they care about (the net) then works backward
+2. Explains each deduction in one plain sentence (what it is, why it exists)
+3. Flags that these are estimates and the title company's final figures control
+4. Ends by asking what questions they have
+
+No jargon without translation. Under 300 words.`}
+]},
+{cat:"Under contract to close", sub:"The deal is won; now don't lose it in the paperwork. Deadlines, updates, and calm client emails.", prompts:[
+ {t:"Contract-to-close kickoff", w:"Paste the key dates, get a checklist and the client email in one shot.",
+p:`We just went under contract. Key terms: [ACCEPTANCE DATE, CLOSING DATE, INSPECTION DEADLINE, ATTORNEY REVIEW DEADLINE, FINANCING/APPRAISAL DEADLINES, EARNEST MONEY AMOUNT + DUE DATE]. I represent the [BUYER/SELLER].
+
+Give me:
+1. A dated checklist of every deadline in order, with a reminder date 48 hours before each
+2. A "we're under contract, here's what happens next" email to my client: warm, plain English, lists the dates, tells them exactly what THEY need to do vs what I handle
+3. [IF CLIENT PREFERS SPANISH: the same email in natural spoken Spanish]
+
+Don't invent deadlines I didn't give you; ask if a standard one is missing.`},
+ {t:"Inspection response summary", w:"Turn a 40-page inspection report into a decision email.",
+p:`Here are the findings from my [BUYER'S/SELLER'S] inspection: [PASTE OR SUMMARIZE THE KEY FINDINGS].
+
+Write an email to my client that:
+1. Sorts findings into three buckets: safety/major, worth negotiating, normal wear (ignore)
+2. Gives my recommended ask in plain language: [WHAT I PLAN TO RECOMMEND, e.g. "credit for the roof, fix the GFCI, let the rest go"]
+3. Reminds them the goal is the house, not winning every line item
+4. Asks for their decision by [DATE] because our deadline is [DEADLINE]
+
+Calm, organized, zero alarm. If a finding sounds like it needs a licensed pro's opinion, say that instead of guessing severity.`},
+ {t:"Closing week package", w:"The final stretch: what to bring, what happens, what not to do.",
+p:`My [BUYER/SELLER] closes on [DATE] at [TIME, LOCATION/ATTORNEY]. Write the closing week email:
+1. What to bring (ID, cashier's check or wire details FROM THE TITLE COMPANY ONLY, etc.)
+2. A wire fraud warning in bold plain language: never trust wiring instructions from email or a phone call without verifying by calling the title company at a known number
+3. What happens at the table and how long it takes
+4. [BUYERS: the do-not list until keys: no new credit, no furniture financing, no job changes]
+5. One warm closing line in my voice
+
+[IF SPANISH-SPEAKING CLIENT: also give me the Spanish version, spoken register]`}
+]},
+{cat:"Daily operations", sub:"The unglamorous prompts I actually use the most. Your day, organized by lunch.", prompts:[
+ {t:"Morning brief", w:"Paste your calendar and inbox subjects, get your day back in 60 seconds.",
+p:`Build my morning brief. Here's today's calendar: [PASTE EVENTS] and my unread email subjects/senders: [PASTE OR SCREENSHOT].
+
+Give me:
+1. Today at a glance: appointments with drive-time warnings between them
+2. The 3 emails that actually need me today, and why
+3. Everything that can wait or be deleted, in one line
+4. My top 3 money-making actions today (prospecting/follow-up beats admin)
+5. One thing that looks like it's about to fall through a crack
+
+Keep the whole thing under 250 words. Blunt is fine.`},
+ {t:"Voice memo to filed call notes", w:"Talk for 2 minutes after each call. Never lose a promise again.",
+p:`I just recorded a voice memo after a client call. Here's the transcript: [PASTE TRANSCRIPT OR ROUGH NOTES].
+
+Extract and format:
+1. Who I talked to and what it was about (2 lines)
+2. Every PROMISE I made: what, to whom, by when
+3. Every promise THEY made
+4. Action items in checkbox format, mine first
+5. One line to add to this person's contact record so future-me has context
+
+Flag anything time-sensitive at the top in bold.`},
+ {t:"Weekly pipeline review", w:"Friday afternoon, 15 minutes, know exactly who to call Monday.",
+p:`Run my weekly pipeline review. Here's my current pipeline: [PASTE OR DESCRIBE: ACTIVE LISTINGS + DOM, BUYERS + STATUS, PENDING DEALS + NEXT DEADLINE, HOT LEADS + LAST CONTACT DATE].
+
+Tell me:
+1. What's gone stale (no movement in 14+ days) and the specific next action for each
+2. Which pending-deal deadline is closest and whether anything is missing
+3. My 5 Monday-morning calls, ranked by likelihood to move a deal forward
+4. One honest observation about a pattern in my pipeline (where deals stall, what I avoid)`},
+ {t:"Inbox replies in your voice", w:"Ten drafts in the time it takes to write one.",
+p:`Draft replies to these emails in my voice. For each, keep it as short as the situation allows, answer the actual question first, and end with a clear next step. Flag any email where I should call instead of write.
+
+My voice guide: [PASTE VOICE GUIDE]
+
+Emails:
+[PASTE EMAILS, NUMBERED]`}
+]},
+{cat:"Content & social", sub:"Stop staring at the blank caption box. Mine your real week for content and multiply everything you make.", prompts:[
+ {t:"Mine your week for a month of content", w:"Your calls ARE the content calendar. You just need to see them that way.",
+p:`Here's what actually happened in my business this week: [LIST: QUESTIONS CLIENTS ASKED, DEALS AND WHAT MADE THEM TRICKY, THINGS THAT SURPRISED A BUYER, MYTHS YOU CORRECTED, WINS].
+
+Turn this into 20 content ideas:
+- For each: a hook line, the format (reel talking to camera, carousel, text post, story poll), and the ONE point it makes
+- No client names or identifying details, ever
+- Mix: 8 educational, 6 story/behind-the-scenes, 3 local market, 3 personality
+- Mark the 5 you'd film first and why they'll perform`},
+ {t:"Market update post from real numbers", w:"The Monday post that makes you the local expert. Numbers in, plain English out.",
+p:`Write a market update social post for [TOWN] using this data: [MEDIAN PRICE, ACTIVE LISTINGS, DOM, SOLD COUNT, ANY MONTH-OVER-MONTH CHANGE. Pull from your MLS or RPR].
+
+Rules:
+- Open with the ONE number that matters most this month and what it means for a normal person
+- Translate every stat ("homes are taking 12 more days to sell" beats "DOM increased 18%")
+- No predictions, no panic, no hype. What IS, and what a buyer or seller should do about it
+- End with a question that invites comments
+- Give me an English version and a natural spoken Spanish version`},
+ {t:"One listing, five pieces of content", w:"You already did the work. Multiply it.",
+p:`I have one listing: [FACTS: TOWN, PRICE, TOP FEATURES, STORY BEHIND IT IF ANY]. Turn it into 5 different pieces of content, none of which feel like the same post:
+1. The classic listing announcement
+2. A "one feature" reel script (30 sec) about the single best thing in the house
+3. An educational angle it unlocks ("what $X actually buys in [TOWN]")
+4. A story/poll sequence for Instagram stories
+5. A neighbor-targeted angle (open house invite or "know someone looking?")
+
+Each with hook, body, CTA. My voice: [PASTE VOICE GUIDE]`},
+ {t:"One FAQ, five formats", w:"Answer it once, post it everywhere.",
+p:`Clients keep asking me: "[THE QUESTION, e.g. Do I really need 20% down?]"
+
+Give me the answer as:
+1. A 30-second talking-head reel script with a hook
+2. A carousel outline (7 slides, one idea per slide)
+3. A short text post
+4. A story poll + follow-up answer slide
+5. The same answer in natural spoken Spanish as a reel script
+
+The answer itself: accurate, general (no promises about loan approval), and it ends by inviting the specific question about THEIR situation.`}
+]}
+];
+
+/* ---------- render ---------- */
+function render(){
+  const tabs = document.getElementById("tabs");
+  const cats = document.getElementById("cats");
+  tabs.innerHTML = '<button class="tab active" data-cat="all" onclick="pick(this)">All</button>' +
+    LIB.map((c,i)=>`<button class="tab" data-cat="${i}" onclick="pick(this)">${c.cat}</button>`).join("");
+  cats.innerHTML = LIB.map((c,i)=>`
+    <div class="cat" data-cat="${i}">
+      <h3 class="serif">${c.cat}</h3>
+      <p class="catsub">${c.sub}</p>
+      ${c.prompts.map(p=>`
+      <details class="card" data-text="${(c.cat+" "+p.t+" "+p.w+" "+p.p).toLowerCase().replace(/"/g,"&quot;")}">
+        <summary><span><b>${p.t}</b><small>${p.w}</small></span><span class="chev">›</span></summary>
+        <div class="body">
+          <pre class="prompt">${p.p.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</pre>
+          <button class="copy" onclick="copyPrompt(this)">Copy prompt</button>
+        </div>
+      </details>`).join("")}
+    </div>`).join("");
+}
+function pick(btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  const c = btn.dataset.cat;
+  document.querySelectorAll(".cat").forEach(el=>{
+    el.style.display = (c==="all" || el.dataset.cat===c) ? "block" : "none";
+  });
+}
+function filter(){
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  document.querySelectorAll(".card").forEach(card=>{
+    card.style.display = !q || card.dataset.text.includes(q) ? "block" : "none";
+  });
+  document.querySelectorAll(".cat").forEach(cat=>{
+    const any = [...cat.querySelectorAll(".card")].some(c=>c.style.display!=="none");
+    cat.style.display = any ? "block" : "none";
+  });
+}
+function copyPrompt(btn){
+  const text = btn.parentElement.querySelector("pre").innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = "Copied. Paste it into Claude"; btn.classList.add("done");
+    setTimeout(()=>{btn.textContent="Copy prompt";btn.classList.remove("done")},2500);
+  });
+}
+
+/* ---------- gate ---------- */
+/* localStorage can throw (Safari private mode etc.) — never let that break the page */
+let sessionUnlocked = false;
+function readUnlocked(){ try{ return localStorage.getItem("aitk_unlocked")==="1"; }catch(e){ return false; } }
+function saveUnlocked(){ sessionUnlocked = true; try{ localStorage.setItem("aitk_unlocked","1"); }catch(e){} }
+function unlocked(){ return sessionUnlocked || readUnlocked(); }
+function showLibrary(){
+  document.getElementById("locked").style.display="none";
+  document.getElementById("library").style.display="block";
+  render();
+}
+function startUnlock(){
+  if(unlocked()){ showLibrary(); document.getElementById("library").scrollIntoView({behavior:"smooth"}); return; }
+  document.getElementById("overlay").classList.add("open");
+}
+function closeForm(){ document.getElementById("overlay").classList.remove("open"); }
+document.getElementById("overlay").addEventListener("click",e=>{ if(e.target.id==="overlay") closeForm(); });
+
+async function submitLead(e){
+  e.preventDefault();
+  if(e.target.company_website && e.target.company_website.value){ finishUnlock(); return; }
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true; btn.textContent = "Unlocking...";
+  const f = Object.fromEntries(new FormData(e.target).entries());
+  const tagList = BASE_TAGS.concat(
+    f.system_interest && f.system_interest.startsWith("Yes") ? ["attraction-hot"] : []);
+  const payload = {
+    first_name: f.first_name, last_name: f.last_name, email: f.email, cell_phone_1: f.phone,
+    source: SOURCE, lead_type: "Agent", capture_method: "Agent AI Toolkit",
+    tag: tagList.join(" | "),
+    message: [
+      "Source: ai.bettybotello.com prompt library",
+      "Brokerage: " + (f.brokerage||""),
+      "Market: " + (f.market||""),
+      "Biggest time drain: " + (f.time_drain||""),
+      "Interest in full system: " + (f.system_interest||"")
+    ].join("\n"),
+    primary_address_meta: "",
+    submitted_at: new Date().toISOString()
+  };
+  try{
+    await fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    finishUnlock();
+  }catch(err){
+    document.getElementById("formErr").style.display="block";
+    btn.disabled=false; btn.textContent="Unlock the library";
+  }
+}
+function finishUnlock(){
+  saveUnlocked();
+  closeForm(); showLibrary();
+  document.getElementById("library").scrollIntoView({behavior:"smooth"});
+}
+
+/* mentee bypass + returning visitors */
+if(location.search.includes("mentee") || location.hash.includes("mentee")) saveUnlocked();
+if(unlocked()) showLibrary();
+</script>
